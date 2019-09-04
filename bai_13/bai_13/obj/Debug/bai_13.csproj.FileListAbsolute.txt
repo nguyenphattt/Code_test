@@ -1,0 +1,7 @@
+F:\bai_lam_c#\bai_13\bai_13\bin\Debug\bai_13.exe.config
+F:\bai_lam_c#\bai_13\bai_13\bin\Debug\bai_13.exe
+F:\bai_lam_c#\bai_13\bai_13\bin\Debug\bai_13.pdb
+F:\bai_lam_c#\bai_13\bai_13\obj\Debug\bai_13.csprojAssemblyReference.cache
+F:\bai_lam_c#\bai_13\bai_13\obj\Debug\bai_13.csproj.CoreCompileInputs.cache
+F:\bai_lam_c#\bai_13\bai_13\obj\Debug\bai_13.exe
+F:\bai_lam_c#\bai_13\bai_13\obj\Debug\bai_13.pdb
