@@ -1,0 +1,171 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+namespace De1
+{
+    public partial class frmSinhvien : Form
+    {
+        SqlConnection sqlConn = new SqlConnection("Data Source=ADMIN\\SQLEXPRESS;Initial Catalog=QLSinhVien;Integrated Security=True");
+        SqlDataAdapter da;
+        DataSet ds;
+
+        //--------------------------------------------------------//
+        public DataTable Execute(string sqlStr)
+        {
+            da = new SqlDataAdapter(sqlStr, sqlConn);
+            ds = new DataSet();
+            da.Fill(ds);
+            return ds.Tables[0];
+        }
+        public void ExecuteNonQuery(string strSQL)
+        {
+            SqlCommand sqlcmd = new SqlCommand(strSQL, sqlConn);
+            sqlConn.Open(); //Mo ket noi
+            sqlcmd.ExecuteNonQuery();//Lenh hien lenh Them/Xoa/Sua
+            sqlConn.Close();//Dong ket noi
+        }
+        //--------------------------------------------------------//
+        DataTable LaySinhVien()
+        {
+            ds = new DataSet();
+            string sql = "select MaSV,HotenSV,NgaySinh,Gioitinh=(iif(Gioitinh=1,'Nam',N'N?')),Hocbong,MaLop from Sinhvien";
+            DataTable dt = Execute(sql);
+            return dt;
+        }
+        void LoadListview()
+        {
+            lsvSinhvien.Items.Clear();
+
+            DataTable dt = LaySinhVien();
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                ListViewItem lvi = lsvSinhvien.Items.Add(dt.Rows[i][0].ToString());
+                lvi.SubItems.Add(dt.Rows[i][1].ToString());
+                lvi.SubItems.Add(dt.Rows[i][2].ToString());
+                lvi.SubItems.Add(dt.Rows[i][3].ToString());
+                lvi.SubItems.Add(dt.Rows[i][4].ToString());
+                lvi.SubItems.Add(dt.Rows[i][5].ToString());
+            }
+        }
+        
+        public DataTable Laylop()
+        {
+            string sql = "Select * from Lop";
+            DataTable dt = Execute(sql);
+            return dt;
+        }
+        void Hienthilop()
+        {
+            DataTable dt = Laylop();
+            cbLop.DataSource = dt;
+            cbLop.DisplayMember = "TenLop";
+            cbLop.ValueMember = "MaLop";
+        }
+        void setButton(bool val)
+        {
+            btnThem.Enabled = val;
+            btnXoa.Enabled = val;
+            btnSua.Enabled = val;
+            btnThoat.Enabled = val;
+            btnIn.Enabled = val;
+            btnLuu.Enabled = !val;
+            btnKluu.Enabled = !val;
+        }
+        public frmSinhvien()
+        {
+            InitializeComponent();
+        }
+
+        private void FrmSinhvien_Load(object sender, EventArgs e)
+        {
+            LoadListview();
+            Hienthilop();
+        }
+
+        private void BtnLuu_Click(object sender, EventArgs e)
+        {
+            sqlConn.Open();
+
+            if (rbNam.Checked)
+            {
+                string sql = string.Format("insert into Sinhvien ([MaSV],[HotenSV],[NgaySinh],[Gioitinh],[Hocbong],[MaLop]) values({0},N'{1}','{2}',{3},{4},{5})",
+                    txtMaSV.Text, txtTen.Text, dtpNgaysinh.Value.Year + "-" + dtpNgaysinh.Value.Month + "-" + dtpNgaysinh.Value.Day, 1, txtHocbong.Text, cbLop.SelectedValue.ToString());
+                SqlCommand cmd = new SqlCommand(sql, sqlConn);
+                cmd.ExecuteNonQuery();
+                LoadListview();
+            }
+            else if(rbNu.Checked)
+            {
+                string sql = string.Format("insert into Sinhvien ([MaSV],[HotenSV],[NgaySinh],[Gioitinh],[Hocbong],[MaLop]) values({0},N'{1}','{2}',{3},{4},{5})",
+                    txtMaSV.Text, txtTen.Text, dtpNgaysinh.Value.Year + "-" + dtpNgaysinh.Value.Month + "-" + dtpNgaysinh.Value.Day, 0, txtHocbong.Text, cbLop.SelectedValue.ToString());
+                SqlCommand cmd = new SqlCommand(sql, sqlConn);
+                cmd.ExecuteNonQuery();
+                LoadListview();
+            }
+            sqlConn.Close();
+        }
+
+        private void BtnThem_Click(object sender, EventArgs e)
+        {
+            setButton(false);
+            txtMaSV.Focus();
+        }
+        public void XoaNhanVien(string index_nv)
+        {
+            string sql = "Delete from Sinhvien where MaSV = " + index_nv;
+            ExecuteNonQuery(sql);
+        }
+        private void BtnXoa_Click(object sender, EventArgs e)
+        {
+            if (lsvSinhvien.SelectedIndices.Count > 0)
+            {
+                DialogResult dr = MessageBox.Show("B?n có ch?c xóa không ? ", "Xóa b?ng c?p", MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+                if (dr == DialogResult.Yes)
+                {
+                    XoaNhanVien(lsvSinhvien.SelectedItems[0].SubItems[0].Text);
+                    lsvSinhvien.Items.RemoveAt(
+                    lsvSinhvien.SelectedIndices[0]);
+                }
+            }
+            else
+                MessageBox.Show("B?n ph?i ch?n m?u tin c?n xóa");
+        }
+
+        private void BtnSua_Click(object sender, EventArgs e)
+        {
+            if (lsvSinhvien.SelectedIndices.Count > 0)
+            {
+                setButton(false);
+            }
+            else
+                MessageBox.Show("B?n ph?i ch?n m?u tin c?p nh?t",
+                "S?a m?u tin");
+        }
+
+        private void LsvSinhvien_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if(lsvSinhvien.SelectedIndices.Count>0)
+            {
+                txtMaSV.Text = lsvSinhvien.SelectedItems[0].SubItems[0].Text;
+                txtTen.Text=lsvSinhvien.SelectedItems[0].SubItems[1].Text;
+                dtpNgaysinh.Value =DateTime.Parse(lsvSinhvien.SelectedItems[0].SubItems[2].Text);
+                txtHocbong.Text= lsvSinhvien.SelectedItems[0].SubItems[4].Text;
+                string s = lsvSinhvien.SelectedItems[0].SubItems[3].Text;
+                if (s == "Nam")
+                    rbNam.Checked = true;
+                else
+                    rbNu.Checked = true;
+                cbLop.Text= lsvSinhvien.SelectedItems[0].SubItems[5].Text;
+            }
+        }
+    }
+}
